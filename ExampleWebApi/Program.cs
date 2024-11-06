@@ -100,7 +100,11 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddDbContext<ExampleDbContext>(options =>
 {
-    string connectionString = configuration.GetConnectionString("ExampleWebApiDbConnection");
+    if (configuration.GetConnectionString("ExampleWebApiDbConnection") is null)
+    {
+        throw new ApplicationException("Please provide a connectionstring for the database");
+    }
+    var connectionString = configuration.GetConnectionString("ExampleWebApiDbConnection");
     options.UseSqlServer(connectionString).EnableSensitiveDataLogging();
 });
 
@@ -122,7 +126,7 @@ builder.Services.AddIdentity<User, IdentityRole<Guid>>(options =>
     .AddEntityFrameworkStores<ExampleDbContext>()
     .AddDefaultTokenProviders();
 
-builder.Services.AddAutoMapper(typeof(Program));
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddSingleton<ITokenFactory>(new JwtTokenFactory(tokenSettings));
 
 var app = builder.Build();

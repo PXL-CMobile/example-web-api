@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
+using System.Security.Claims;
 
 namespace ExampleWebApi.Api.Controllers
 {
@@ -27,6 +28,7 @@ namespace ExampleWebApi.Api.Controllers
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.Unauthorized)]
         public IActionResult TestAuth()
         {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
             return Ok("GET request WITH authorization working fine");
         }
     }

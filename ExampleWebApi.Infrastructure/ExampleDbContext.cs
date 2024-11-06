@@ -11,8 +11,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ExampleWebApi.Infrastructure
 {
-    internal class ExampleDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
+    public class ExampleDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
     {
+        public DbSet<Actor> Actors { get; set; }
+
         public ExampleDbContext(DbContextOptions options) : base(options) { }
 
         protected override void OnModelCreating(ModelBuilder builder)

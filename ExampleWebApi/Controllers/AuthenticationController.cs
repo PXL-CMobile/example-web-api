@@ -78,10 +78,11 @@ public class AuthenticationController : ApiControllerBase
     /// <summary>
     /// Returns an object containing a (bearer) token that will be valid for 60 minutes.
     /// The token should be added in the Authorization header of each http request for which the user must be authenticated.
-    /// The Id and NickName of the player are also included in the object.
+    /// The Id and NickName of the user are also included in the object.
     /// </summary>
     /// <example>Authorization bearer [token]</example>
     [HttpPost("token")]
+    [HttpPost("login")]
     [AllowAnonymous]
     [ProducesResponseType(typeof(AccessPassModel), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -90,7 +91,7 @@ public class AuthenticationController : ApiControllerBase
         if (!ModelState.IsValid) return BadRequest(ModelState);
 
         var user = await _userManager.FindByEmailAsync(model.Email);
-        if (user == null)
+        if (user == null || user.PasswordHash is null)
         {
             return Unauthorized();
         }
