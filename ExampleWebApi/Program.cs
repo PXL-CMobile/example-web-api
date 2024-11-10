@@ -16,7 +16,7 @@ using ExampleWebApi.Infrastructure;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
+// All controllers and actions are default available for authorized users only:
 builder.Services.AddControllers(options =>
 {
     var onlyAuthenticatedUsersPolicy = new AuthorizationPolicyBuilder(JwtBearerDefaults.AuthenticationScheme)
@@ -86,15 +86,15 @@ builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
 })
-    .AddJwtBearer(options =>
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
     {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidIssuer = tokenSettings.Issuer,
-            ValidAudience = tokenSettings.Audience,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(tokenSettings.Key)),
-        };
-    });
+        ValidIssuer = tokenSettings.Issuer,
+        ValidAudience = tokenSettings.Audience,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(tokenSettings.Key)),
+    };
+});
 
 builder.Services.AddAuthorization();
 

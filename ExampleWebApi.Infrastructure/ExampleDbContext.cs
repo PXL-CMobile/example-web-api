@@ -13,6 +13,9 @@ namespace ExampleWebApi.Infrastructure
 {
     public class ExampleDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
     {
+        public DbSet<Actor> Actors { get; set; }
+        public DbSet<UserFavoriteActor> UserFavoriteActors { get; set; }
+
 
         public ExampleDbContext(DbContextOptions options) : base(options) { }
 
@@ -27,6 +30,20 @@ namespace ExampleWebApi.Infrastructure
             builder.Entity<IdentityUserRole<Guid>>().ToTable("UserRoles");
             builder.Entity<IdentityUserLogin<Guid>>().ToTable("ExternalLogins");
             builder.Entity<IdentityUserToken<Guid>>().ToTable("UserTokens");
+
+
+            builder.Entity<UserFavoriteActor>()
+            .HasKey(ufa => new { ufa.UserId, ufa.ActorId });
+
+            builder.Entity<UserFavoriteActor>()
+                .HasOne(ufa => ufa.User)
+                .WithMany(u => u.FavoriteActors)
+                .HasForeignKey(ufa => ufa.UserId);
+
+            builder.Entity<UserFavoriteActor>()
+                .HasOne(ufa => ufa.Actor)
+                .WithMany(a => a.UserFavorites)
+                .HasForeignKey(ufa => ufa.ActorId);
         }
     }
 }
