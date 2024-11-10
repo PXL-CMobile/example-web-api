@@ -13,7 +13,6 @@ namespace ExampleWebApi.Infrastructure
 {
     public class ExampleDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
     {
-        public DbSet<Actor> Actors { get; set; }
 
         public ExampleDbContext(DbContextOptions options) : base(options) { }
 

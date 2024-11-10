@@ -81,7 +81,6 @@ public class AuthenticationController : ApiControllerBase
     /// The Id and NickName of the user are also included in the object.
     /// </summary>
     /// <example>Authorization bearer [token]</example>
-    [HttpPost("token")]
     [HttpPost("login")]
     [AllowAnonymous]
     [ProducesResponseType(typeof(AccessPassModel), StatusCodes.Status200OK)]
