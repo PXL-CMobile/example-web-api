@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using ExampleWebApi.Api.Models;
+using ExampleWebApi.Api.Services.Contracts;
 using ExampleWebApi.Domain;
 using ExampleWebApi.Infrastructure;
 using Microsoft.AspNetCore.Authorization;
@@ -16,13 +17,14 @@ namespace ExampleWebApi.Api.Controllers
     [Route("api/actors")]
     [Produces("application/json")]
     [ApiController]
-    public class ActorsController : ControllerBase
+    public class ActorsController : ApiControllerBase
     {
-        private readonly ExampleDbContext _context;
+        private readonly IActorRepository _repository;
         private readonly IMapper _mapper;
-        public ActorsController(ExampleDbContext context, IMapper mapper)
+
+        public ActorsController(IActorRepository repo, IMapper mapper)
         {
-            _context = context;
+            _repository = repo;
             _mapper = mapper;
         }
 
@@ -33,7 +35,9 @@ namespace ExampleWebApi.Api.Controllers
         [AllowAnonymous]
         public ActionResult<IEnumerable<ActorDTO>> Get()
         {
-            return Ok(_mapper.Map<IEnumerable<ActorDTO>>(_context.Actors.ToList()));
+            // Get all the actors via the context.
+            var listOfAllActors = _repository.GetAllActors();
+            return Ok(_mapper.Map<IEnumerable<ActorDTO>>(listOfAllActors));
         }
 
         /// <summary>
@@ -45,7 +49,7 @@ namespace ExampleWebApi.Api.Controllers
         [AllowAnonymous]
         public ActionResult<ActorDTO> GetById(int id)
         {
-            Actor? actor = _context.Actors.Find(id);
+            Actor? actor = _repository.FindActorById(id);
             if (actor is not null)
             {
                 return Ok(_mapper.Map<ActorDTO>(actor));
@@ -59,15 +63,11 @@ namespace ExampleWebApi.Api.Controllers
         [HttpGet("my-actors")]
         public ActionResult<IEnumerable<ActorDTO>> GetMyActors()
         {
-            Guid loggedinUser = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-            var list = _context.Users
-                .Where(u => u.Id == loggedinUser)
-                .Include(u => u.FavoriteActors)
-                .ThenInclude(fa=>fa.Actor)
-                .Select(r => r.FavoriteActors)
-                .FirstOrDefault();
+            // This call is available via the base class. There is a property UserId
+            // Guid loggedinUser = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+            Guid loggedinUser = this.UserId;
 
-            var actorList = list?.Select(favo => favo.Actor).ToList();
+            var actorList = _repository.GetFavoriteActorsUser(loggedinUser);
             return _mapper.Map<List<ActorDTO>>(actorList);
         }
 
@@ -78,12 +78,13 @@ namespace ExampleWebApi.Api.Controllers
         [HttpPost("add-favorite/{actorId:int}")]
         public ActionResult Post(int actorId)
         {
-            Guid loggedinUser = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+            Guid loggedinUser = this.UserId;
+
             try
             {
-                _context.UserFavoriteActors.Add(new UserFavoriteActor { UserId = loggedinUser, ActorId = actorId });
-                _context.SaveChanges();
-            } catch(Exception ex)
+                _repository.AddFavoriteActor(loggedinUser, actorId);
+            } 
+            catch(Exception ex)
             {
                 // Something went wrong -> Does the user already have this actor as a favorite? 
                 return BadRequest("Error while adding favorite.");
@@ -100,10 +101,10 @@ namespace ExampleWebApi.Api.Controllers
         public ActionResult<ActorDTO> Post([FromBody] NewActorModel actorModel)
         {
             Actor newActor = _mapper.Map<Actor>(actorModel);
-            _context.Add(newActor);
-            _context.SaveChanges();
 
-            return CreatedAtAction(nameof(GetById), new { id = newActor.Id }, _mapper.Map<ActorDTO>(newActor));
+            int newActorId = _repository.AddActor(newActor);
+
+            return CreatedAtAction(nameof(GetById), new { id = newActorId }, _mapper.Map<ActorDTO>(newActor));
         }
     }
 }

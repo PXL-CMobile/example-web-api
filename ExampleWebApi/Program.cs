@@ -16,6 +16,8 @@ using ExampleWebApi.Infrastructure;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddTransient<IActorRepository, ActorDbRepository>();
+
 // All controllers and actions are default available for authorized users only:
 builder.Services.AddControllers(options =>
 {
