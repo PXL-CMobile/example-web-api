@@ -12,6 +12,7 @@ using Microsoft.OpenApi.Models;
 using System.Reflection;
 using System.Text;
 using ExampleWebApi.Infrastructure;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,6 +27,9 @@ builder.Services.AddControllers(options =>
     options.Filters.Add(new AuthorizeFilter(onlyAuthenticatedUsersPolicy));
 
     var jsonOutputFormatter = options.OutputFormatters.OfType<SystemTextJsonOutputFormatter>().First();
+}).AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
 });
 
 builder.Services.AddCors(options => options.AddPolicy("CorsPolicy",
