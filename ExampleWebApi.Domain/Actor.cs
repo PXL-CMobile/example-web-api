@@ -13,6 +13,7 @@ namespace ExampleWebApi.Domain
         public string FirstName { get; set; }
         public string ProfilePictureUrl { get; set; }
         public int BirthYear { get; set; }
+        public string ShortBio { get; set; }
 
         public List<UserFavoriteActor> UserFavorites { get; set; } = new();
     }
